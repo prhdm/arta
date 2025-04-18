@@ -4,6 +4,7 @@ import { X, Loader2, RefreshCw, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface EmailVerificationPopupProps {
+  onOpen: () => void;
   onClose: () => void;
   onVerify: (code: string) => Promise<boolean>;
   onResendCode: () => Promise<void>;
@@ -31,6 +32,29 @@ const EmailVerificationPopup: React.FC<EmailVerificationPopupProps> = ({
 
     return () => clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    const sendInitialOTP = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        await fetch('/api/send-otp', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ email }),
+        });
+      } catch (err) {
+        setError('خطا در ارسال کد تایید. لطفاً دوباره تلاش کنید.');
+        console.error('Error sending OTP:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    sendInitialOTP();
+  }, [email]);
 
   const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Backspace') {

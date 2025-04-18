@@ -78,7 +78,7 @@ const PurchaseForm: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const verifyResponse = await fetch('/api/verify-email', {
+      const verifyResponse = await fetch('/api/send-otp', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -87,7 +87,7 @@ const PurchaseForm: React.FC = () => {
       });
 
       if (!verifyResponse.ok) {
-        throw new Error('خطا در تایید ایمیل');
+        throw new Error('خطا در ارسال کد تایید');
       }
 
       setShowVerification(true);
@@ -396,7 +396,7 @@ const PurchaseForm: React.FC = () => {
           onVerify={handleVerify}
           onResendCode={async () => {
             try {
-              await fetch('/api/verify-email', {
+              await fetch('/api/send-otp', {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
