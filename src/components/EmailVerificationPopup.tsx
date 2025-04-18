@@ -119,7 +119,7 @@ const EmailVerificationPopup: React.FC<EmailVerificationPopupProps> = ({
       if (result) {
         setSuccess(true);
         setTimeout(() => {
-          window.location.href = '/payment';
+          window.location.href = '/payments';
         }, 2000);
       } else {
         setError('کد وارد شده اشتباه است. لطفاً دوباره تلاش کنید.');

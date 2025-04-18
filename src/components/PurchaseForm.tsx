@@ -103,6 +103,39 @@ const PurchaseForm: React.FC = () => {
 
     try {
       const formData = watch();
+      
+      // اول ارسال OTP را انجام می‌دهیم
+      const sendOtpResponse = await fetch('/api/send-otp', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: formData.email }),
+      });
+
+      if (!sendOtpResponse.ok) {
+        throw new Error('خطا در ارسال کد تایید');
+      }
+
+      // سپس تایید OTP را انجام می‌دهیم
+      const verifyResponse = await fetch('/api/verify-otp', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          otp: code,
+          instagram_id: formData.instagram,
+          name: formData.name
+        }),
+      });
+
+      if (!verifyResponse.ok) {
+        throw new Error('کد تایید نامعتبر است');
+      }
+
+      // اگر تایید موفق بود، پرداخت را انجام می‌دهیم
       const finalAmount = formData.currency === 'IRR' 
         ? Math.round(formData.amount * 1.14)
         : Math.round(formData.amount * 1.07);
@@ -133,7 +166,8 @@ const PurchaseForm: React.FC = () => {
       } else {
         return false;
       }
-    } catch {
+    } catch (error) {
+      console.error('Error in handleVerify:', error);
       return false;
     } finally {
       setIsLoading(false);
