@@ -1,14 +1,53 @@
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { ConvertedSupporter } from "../types/supporter";
 
 interface TopSupportersProps {
   title?: string;
-  supporters: ConvertedSupporter[];
 }
 
-const TopSupporters: React.FC<TopSupportersProps> = ({ supporters, title }) => {
+const TopSupporters: React.FC<TopSupportersProps> = ({ title }) => {
+  const [supporters, setSupporters] = useState<ConvertedSupporter[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchSupporters = async () => {
+      try {
+        const response = await fetch('/api/top-users');
+        if (!response.ok) {
+          throw new Error('Failed to fetch supporters');
+        }
+        const data = await response.json();
+        setSupporters(data.supporters);
+      } catch (err) {
+        setError('Failed to load supporters');
+        console.error('Error fetching supporters:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSupporters();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="w-full max-w-[95vw] mx-auto bg-neutral-900 text-neutral-100 p-6 sm:p-10 px-4 sm:px-6 rounded-3xl border border-neutral-800 flex justify-center items-center h-64">
+        <div className="animate-pulse text-neutral-400">Loading supporters...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="w-full max-w-[95vw] mx-auto bg-neutral-900 text-neutral-100 p-6 sm:p-10 px-4 sm:px-6 rounded-3xl border border-neutral-800 text-center text-red-500">
+        {error}
+      </div>
+    );
+  }
+
   const sortedSupporters = supporters.slice().sort((a, b) => b.amount - a.amount);
 
   return (
