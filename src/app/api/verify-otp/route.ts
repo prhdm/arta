@@ -22,7 +22,19 @@ export async function POST(request: Request) {
     }
 
     const data = await response.json();
-    return NextResponse.json(data);
+    
+    if (data.api_key) {
+      return NextResponse.json({
+        success: true,
+        message: data.message || 'OTP verified successfully',
+        api_key: data.api_key
+      });
+    } else {
+      return NextResponse.json({
+        error: 'Invalid response from server',
+        status: 500
+      });
+    }
   } catch (error) {
     console.error('Error verifying OTP:', error);
     return NextResponse.json(

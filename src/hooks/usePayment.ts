@@ -39,7 +39,7 @@ export const usePayment = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-API-Key': apiKey,
+          'Authorization': apiKey,
         },
         body: JSON.stringify(params),
       });
