@@ -1,37 +1,23 @@
 import { NextResponse } from 'next/server';
-import { generateOTP } from '@/lib/utils';
-
-// Define the type for verification codes
-type VerificationCodes = Record<string, string>;
-
-// Initialize the global variable if it doesn't exist
-if (!(global as any).verificationCodes) {
-  (global as any).verificationCodes = {};
-}
 
 export async function POST(request: Request) {
   try {
     const { email } = await request.json();
 
-    if (!email) {
-      return NextResponse.json(
-        { success: false, error: 'ایمیل الزامی است' },
-        { status: 400 }
-      );
-    }
-
-    // تولید کد تایید
-    const verificationCode = generateOTP();
+    // در اینجا می‌توانید کد تایید را به ایمیل ارسال کنید
+    // برای تست، یک کد تصادفی تولید می‌کنیم
+    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
 
     // ذخیره کد در دیتابیس یا حافظه موقت
     // در این مثال از حافظه موقت استفاده می‌کنیم
-    (global as any).verificationCodes[email] = verificationCode;
+    global.verificationCodes = global.verificationCodes || {};
+    global.verificationCodes[email] = verificationCode;
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Error in verify-email route:', error);
+    console.error('Error in verify-email:', error);
     return NextResponse.json(
-      { success: false, error: 'خطا در پردازش درخواست' },
+      { error: 'خطا در پردازش درخواست' },
       { status: 500 }
     );
   }

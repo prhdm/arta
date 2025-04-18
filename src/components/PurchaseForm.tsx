@@ -1,9 +1,10 @@
 "use client";
+import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
+import { useRouter } from "next/navigation";
 import { Loader2 } from 'lucide-react';
 import EmailVerificationPopup from "./EmailVerificationPopup";
-import { sendOTP, verifyOTP, createPayment } from '../lib/api';
 
 interface FormData {
   name: string;
@@ -14,10 +15,20 @@ interface FormData {
   currency: 'USD' | 'IRR';
 }
 
+const persianToLatinDigits = (str: string): string => {
+  const persianDigits = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+  return str.replace(/[۰-۹]/g, (d) => String(persianDigits.indexOf(d)));
+};
+
+const latinToPersianDigits = (str: string): string => {
+  const persianDigits = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+  return str.replace(/[0-9]/g, (d) => persianDigits[parseInt(d, 10)]);
+};
+
 const PurchaseForm: React.FC = () => {
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [showVerification, setShowVerification] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const {
     register,
@@ -37,6 +48,7 @@ const PurchaseForm: React.FC = () => {
     },
   });
 
+  const [amountDisplay, setAmountDisplay] = useState<string>('');
   const [finalAmountDisplay, setFinalAmountDisplay] = useState<string>('');
   const currency = watch('currency');
 
@@ -44,10 +56,12 @@ const PurchaseForm: React.FC = () => {
     if (currency === 'IRR') {
       setValue('paymentMethod', 'zarinpal');
       setValue('amount', 1000000);
+      setAmountDisplay((1000000).toLocaleString('fa-IR'));
       setFinalAmountDisplay((1000000 * 1.14).toLocaleString('fa-IR'));
     } else if (currency === 'USD') {
       setValue('paymentMethod', 'crypto');
       setValue('amount', 10);
+      setAmountDisplay((10).toLocaleString('fa-IR'));
       setFinalAmountDisplay((10 * 1.07).toLocaleString('fa-IR'));
     }
   }, [currency, setValue]);
@@ -62,16 +76,23 @@ const PurchaseForm: React.FC = () => {
 
   const onSubmit = async (data: FormData) => {
     setIsLoading(true);
-    setError(null);
 
     try {
-      const result = await sendOTP(data.email);
-      if (!result.success) {
-        throw new Error(result.error || 'خطا در ارسال کد تایید');
+      const verifyResponse = await fetch('/api/verify-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: data.email }),
+      });
+
+      if (!verifyResponse.ok) {
+        throw new Error('خطا در تایید ایمیل');
       }
+
       setShowVerification(true);
-    } catch (error) {
-      setError(error instanceof Error ? error.message : 'خطا در پردازش درخواست');
+    } catch {
+      alert('خطا در پردازش درخواست. لطفاً دوباره تلاش کنید.');
     } finally {
       setIsLoading(false);
     }
@@ -79,45 +100,40 @@ const PurchaseForm: React.FC = () => {
 
   const handleVerify = async (code: string) => {
     setIsLoading(true);
-    setError(null);
 
     try {
       const formData = watch();
-      const verifyResult = await verifyOTP({
-        email: formData.email,
-        otp: code,
-        instagram_id: formData.instagram,
-        name: formData.name
-      });
-
-      if (!verifyResult.success) {
-        throw new Error(verifyResult.error || 'خطا در تایید کد');
-      }
-
       const finalAmount = formData.currency === 'IRR' 
         ? Math.round(formData.amount * 1.14)
         : Math.round(formData.amount * 1.07);
 
-      const paymentResult = await createPayment({
-        ...formData,
-        amount: finalAmount,
-        code
+      const paymentResponse = await fetch('/api/payment', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...formData,
+          amount: finalAmount,
+          code,
+        }),
       });
 
-      if (!paymentResult.success) {
-        throw new Error(paymentResult.error || 'خطا در ایجاد پرداخت');
-      }
+      const result = await paymentResponse.json();
 
-      if (formData.paymentMethod === 'zarinpal') {
-        window.location.href = `/payment/zarinpal?amount=${finalAmount}&orderCode=${paymentResult.orderCode}`;
-      } else if (formData.paymentMethod === 'crypto') {
-        window.location.href = `/payment/crypto?amount=${finalAmount}&orderCode=${paymentResult.orderCode}`;
-      } else if (formData.paymentMethod === 'paypal') {
-        window.location.href = `/payment/paypal?amount=${finalAmount}&orderCode=${paymentResult.orderCode}`;
+      if (paymentResponse.ok) {
+        if (formData.paymentMethod === 'zarinpal') {
+          window.location.href = `/payment/zarinpal?amount=${finalAmount}&orderCode=${result.orderCode}`;
+        } else if (formData.paymentMethod === 'crypto') {
+          window.location.href = `/payment/crypto?amount=${finalAmount}&orderCode=${result.orderCode}`;
+        } else if (formData.paymentMethod === 'paypal') {
+          window.location.href = `/payment/paypal?amount=${finalAmount}&orderCode=${result.orderCode}`;
+        }
+        return true;
+      } else {
+        return false;
       }
-      return true;
-    } catch (error) {
-      setError(error instanceof Error ? error.message : 'خطا در پردازش درخواست');
+    } catch {
       return false;
     } finally {
       setIsLoading(false);
@@ -132,12 +148,6 @@ const PurchaseForm: React.FC = () => {
         className="w-full max-w-[95vw] mx-auto bg-neutral-900 text-neutral-100 p-6 sm:p-10 px-4 sm:px-6 rounded-3xl border border-neutral-800 transition-all duration-300 font-iranyekan shadow-lg"
       >
         <h2 className="mb-10 text-2xl md:text-2xl text-center">فرم خرید آلبوم</h2>
-        
-        {error && (
-          <div className="mb-4 p-4 bg-red-900/50 border border-red-800 rounded-lg text-red-200">
-            {error}
-          </div>
-        )}
         
         {!showVerification && (
           <div className="space-y-8">
@@ -240,37 +250,137 @@ const PurchaseForm: React.FC = () => {
                   },
                 }}
                 render={({ field }) => (
-                  <input
-                    {...field}
-                    type="number"
-                    min={currency === 'USD' ? 10 : 1000000}
-                    step={currency === 'USD' ? 1 : 100000}
-                    onChange={(e) => {
-                      const value = parseInt(e.target.value);
-                      field.onChange(value);
-                      updateFinalAmount(value);
-                    }}
-                    className="w-full px-4 py-4 text-base min-[16px] rounded-lg bg-neutral-800 text-neutral-100 border border-neutral-700 focus:ring-2 focus:ring-[#8B0000] focus:border-[#8B0000] focus:outline-none placeholder-neutral-500 font-iranyekan"
-                  />
+                  <>
+                    <input
+                      {...field}
+                      type="text"
+                      value={amountDisplay}
+                      onChange={(e) => {
+                        const rawValue = e.target.value.replace(/[,،٬]/g, '');
+                        const latinValue = persianToLatinDigits(rawValue);
+                        const numericValue = Number(latinValue);
+                        
+                        if (!isNaN(numericValue)) {
+                          field.onChange(numericValue);
+                          try {
+                            const persianValue = numericValue.toLocaleString('fa-IR');
+                            setAmountDisplay(persianValue);
+                            updateFinalAmount(numericValue);
+                          } catch {
+                            const withCommas = latinValue.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                            const persianWithCommas = latinToPersianDigits(withCommas);
+                            setAmountDisplay(persianWithCommas);
+                            updateFinalAmount(numericValue);
+                          }
+                        }
+                      }}
+                      onBlur={(e) => {
+                        const rawValue = e.target.value.replace(/[,،٬]/g, '');
+                        const latinValue = persianToLatinDigits(rawValue);
+                        
+                        if (latinValue === '') {
+                          if (currency === 'IRR') {
+                            setAmountDisplay((1000000).toLocaleString('fa-IR'));
+                            setFinalAmountDisplay((1000000 * 1.14).toLocaleString('fa-IR'));
+                            field.onChange(1000000);
+                          } else if (currency === 'USD') {
+                            setAmountDisplay((10).toLocaleString('fa-IR'));
+                            setFinalAmountDisplay((10 * 1.07).toLocaleString('fa-IR'));
+                            field.onChange(10);
+                          }
+                        } else {
+                          const numericValue = Number(latinValue);
+                          if (currency === 'IRR' && numericValue < 1000000) {
+                            setAmountDisplay((1000000).toLocaleString('fa-IR'));
+                            setFinalAmountDisplay((1000000 * 1.14).toLocaleString('fa-IR'));
+                            field.onChange(1000000);
+                          } else if (currency === 'USD' && numericValue < 10) {
+                            setAmountDisplay((10).toLocaleString('fa-IR'));
+                            setFinalAmountDisplay((10 * 1.07).toLocaleString('fa-IR'));
+                            field.onChange(10);
+                          } else {
+                            field.onChange(numericValue);
+                            try {
+                              const persianValue = numericValue.toLocaleString('fa-IR');
+                              setAmountDisplay(persianValue);
+                              updateFinalAmount(numericValue);
+                            } catch {
+                              const withCommas = latinValue.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                              const persianWithCommas = latinToPersianDigits(withCommas);
+                              setAmountDisplay(persianWithCommas);
+                              updateFinalAmount(numericValue);
+                            }
+                          }
+                        }
+                      }}
+                      placeholder={currency === 'IRR' ? "حداقل ۱,۰۰۰,۰۰۰ تومان" : "حداقل ۱۰ دلار"}
+                      className="w-full px-4 py-4 text-base min-[16px] rounded-lg bg-neutral-800 text-neutral-100 border border-neutral-700 focus:ring-2 focus:ring-[#8B0000] focus:border-[#8B0000] focus:outline-none placeholder-neutral-500 font-iranyekan"
+                    />
+                    <div className="mt-3 text-base text-neutral-400">
+                      مبلغ نهایی با احتساب مالیات: {finalAmountDisplay} {currency === 'IRR' ? 'تومان' : 'دلار'}
+                    </div>
+                    {errors.amount && <p className="mt-2 text-sm text-red-400">{errors.amount.message}</p>}
+                  </>
                 )}
               />
-              {errors.amount && <p className="mt-2 text-sm text-red-400">{errors.amount.message}</p>}
             </div>
 
-            <div className="flex flex-col gap-2">
-              <p className="text-sm text-neutral-400">مبلغ نهایی:</p>
-              <p className="text-xl font-bold">{finalAmountDisplay} {currency === 'IRR' ? 'تومان' : 'دلار'}</p>
-            </div>
+            {currency === 'USD' && (
+              <div>
+                <label className="block text-base mb-3">روش پرداخت</label>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex flex-col items-center">
+                    <button
+                      type="button"
+                      onClick={() => setValue('paymentMethod', 'crypto')}
+                      className={`w-full h-[100px] bg-white p-3 rounded-xl transition flex items-center justify-center ${
+                        watch('paymentMethod') === 'crypto'
+                          ? 'ring-2 ring-red-300'
+                          : 'opacity-70 hover:opacity-100'
+                      }`}
+                    >
+                      <Image
+                        src="/images/payments/crypto.jpg"
+                        alt="Crypto"
+                        width={120}
+                        height={120}
+                        className="object-contain"
+                      />
+                    </button>
+                    <span className="mt-2 text-base text-neutral-100">Crypto</span>
+                  </div>
+                  <div className="flex flex-col items-center">
+                    <button
+                      type="button"
+                      onClick={() => setValue('paymentMethod', 'paypal')}
+                      className={`w-full h-[100px] bg-white p-3 rounded-xl transition flex items-center justify-center ${
+                        watch('paymentMethod') === 'paypal'
+                          ? 'ring-2 ring-red-300'
+                          : 'opacity-70 hover:opacity-100'
+                      }`}
+                    >
+                      <Image
+                        src="/images/payments/paypal.png"
+                        alt="PayPal"
+                        width={120}
+                        height={120}
+                        className="object-contain"
+                      />
+                    </button>
+                    <span className="mt-2 text-base text-neutral-100">PayPal</span>
+                  </div>
+                </div>
+              </div>
+            )}
 
             <button
               type="submit"
-              disabled={isLoading}
-              className="w-full py-4 px-6 text-base rounded-xl bg-[#8B0000] text-white hover:bg-[#6B0000] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-4 px-6 text-base bg-[#8B0000] text-white rounded-xl hover:bg-[#8B0000] transition-colors duration-300 font-iranyekan"
             >
               {isLoading ? (
-                <div className="flex items-center justify-center gap-2">
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  <span>در حال پردازش...</span>
+                <div className="flex items-center justify-center">
+                  <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                  در حال پردازش...
                 </div>
               ) : (
                 'ادامه'
@@ -286,10 +396,13 @@ const PurchaseForm: React.FC = () => {
           onVerify={handleVerify}
           onResendCode={async () => {
             try {
-              const result = await sendOTP(watch('email'));
-              if (!result.success) {
-                throw new Error(result.error || 'خطا در ارسال مجدد کد');
-              }
+              await fetch('/api/verify-email', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email: watch('email') }),
+              });
             } catch (error) {
               console.error('Error resending code:', error);
             }

@@ -14,6 +14,24 @@ const nextConfig: NextConfig = {
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
   },
+  webpack: (config, { isServer }) => {
+    // Disable caching for development
+    if (process.env.NODE_ENV === 'development') {
+      config.cache = false;
+    }
+    
+    // Improve module resolution
+    config.resolve = {
+      ...config.resolve,
+      fallback: {
+        ...config.resolve?.fallback,
+        fs: false,
+        path: false,
+      },
+    };
+
+    return config;
+  },
 };
 
 const withBundleAnalyzerConfig = withBundleAnalyzer({

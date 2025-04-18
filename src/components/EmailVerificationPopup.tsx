@@ -122,9 +122,8 @@ const EmailVerificationPopup: React.FC<EmailVerificationPopupProps> = ({
       } else {
         setError('کد وارد شده اشتباه است. لطفاً دوباره تلاش کنید.');
       }
-    } catch (error) {
+    } catch (err) {
       setError('کد وارد شده اشتباه است. لطفاً دوباره تلاش کنید.');
-      console.error('Verification error:', error);
     } finally {
       setIsLoading(false);
     }

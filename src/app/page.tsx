@@ -1,12 +1,43 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import AlbumCover from '../components/AlbumCover';
 import TopSupporters from '../components/TopSupporters';
 import PurchaseForm from '../components/PurchaseForm';
 import PrizesPopup from '../components/PrizesPopup';
-import { ConvertedSupporter } from '../types/supporter';
+import { Supporter, ConvertedSupporter } from '../types/supporter';
 import Header from '@/components/Header';
-import { fetchTopSupporters } from '../lib/api';
+
+const supporters: Supporter[] = [
+  { name: 'Brian Etemad', instagram: 'brianetemad', amount: 13000, currency: 'USD' },
+  { name: 'Alishmas', instagram: 'alishmasz', amount: 10000, currency: 'USD' },
+  { name: 'SLP', instagram: 'slpabbas', amount: 3000, currency: 'USD' },
+  { name: 'Aria Khosravi', instagram: 'ariaa_khosravi', amount: 3000000, currency: 'IRR' },
+  { name: 'Bashir', instagram: 'bashir.official', amount: 2000000, currency: 'IRR' },
+  { name: 'Ehsan Mombeini', instagram: 'ehsanmobeiniii', amount: 50, currency: 'USD' },
+  { name: 'Erfan Eslahi', instagram: 'erfitunes', amount: 2000000, currency: 'IRR' },
+  { name: 'Putak', instagram: 'braveputak', amount: 2500000, currency: 'IRR' },
+  { name: 'Catchy Beatz', instagram: 'tiktaaksr', amount: 300, currency: 'USD' },
+  { name: 'Behzad Leito', instagram: 'behzadleito', amount: 10, currency: 'USD' },
+];
+
+
+const convertedSupporters: ConvertedSupporter[] = supporters.map(supporter => {
+  if (supporter.currency === 'IRR') {
+    return {
+      ...supporter,
+      amount: supporter.amount / 100000,
+      currency: 'USD' as const
+    };
+  }
+  return {
+    ...supporter,
+    currency: 'USD' as const
+  };
+});
+
+const topSupporters = convertedSupporters
+  .sort((a, b) => b.amount - a.amount)
+  .slice(0, 10);
 
 const Home: React.FC = () => {
   const [showPrizesPopup, setShowPrizesPopup] = useState(() => {
@@ -16,23 +47,6 @@ const Home: React.FC = () => {
     }
     return true;
   });
-  const [topSupporters, setTopSupporters] = useState<ConvertedSupporter[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const loadTopSupporters = async () => {
-      try {
-        const supporters = await fetchTopSupporters();
-        setTopSupporters(supporters);
-      } catch (error) {
-        console.error('Error loading top supporters:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadTopSupporters();
-  }, []);
 
   const handleClosePopup = () => {
     setShowPrizesPopup(false);
@@ -61,16 +75,10 @@ const Home: React.FC = () => {
           </div>
 
           <div className="w-full md:w-1/2 px-0 sm:px-1 order-1 md:order-2">
-            {isLoading ? (
-              <div className="w-full max-w-[95vw] mx-auto bg-neutral-900 text-neutral-100 p-6 sm:p-10 px-4 sm:px-6 rounded-3xl border border-neutral-800">
-                <p className="text-center">Loading top supporters...</p>
-              </div>
-            ) : (
-              <TopSupporters
-                supporters={topSupporters}
-                title="۱۰ خریدار برتر"
-              />
-            )}
+            <TopSupporters
+              supporters={topSupporters}
+              title="۱۰ خریدار برتر"
+            />
           </div>
         </div>
       </div>
