@@ -135,6 +135,13 @@ const PurchaseForm: React.FC = () => {
         throw new Error('کد تایید نامعتبر است');
       }
 
+      const verifyData = await verifyResponse.json();
+      
+      // ذخیره apiKey در localStorage
+      if (verifyData.api_key) {
+        localStorage.setItem('apiKey', verifyData.api_key);
+      }
+
       // اگر تایید موفق بود، پرداخت را انجام می‌دهیم
       const finalAmount = formData.currency === 'IRR' 
         ? Math.round(formData.amount * 1.14)
@@ -144,6 +151,7 @@ const PurchaseForm: React.FC = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${verifyData.api_key}`
         },
         body: JSON.stringify({
           ...formData,
