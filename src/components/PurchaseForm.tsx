@@ -1,8 +1,6 @@
 "use client";
-import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
-import { useRouter } from "next/navigation";
 import { Loader2 } from 'lucide-react';
 import EmailVerificationPopup from "./EmailVerificationPopup";
 import { sendOTP, verifyOTP, createPayment } from '../lib/api';
@@ -28,7 +26,6 @@ const _latinToPersianDigits = (str: string): string => {
 };
 
 const PurchaseForm: React.FC = () => {
-  const _router = useRouter(); // Kept for future use
   const [isLoading, setIsLoading] = useState(false);
   const [showVerification, setShowVerification] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -51,7 +48,6 @@ const PurchaseForm: React.FC = () => {
     },
   });
 
-  const [_amountDisplay, setAmountDisplay] = useState<string>('');
   const [finalAmountDisplay, setFinalAmountDisplay] = useState<string>('');
   const currency = watch('currency');
 
@@ -59,12 +55,10 @@ const PurchaseForm: React.FC = () => {
     if (currency === 'IRR') {
       setValue('paymentMethod', 'zarinpal');
       setValue('amount', 1000000);
-      setAmountDisplay((1000000).toLocaleString('fa-IR'));
       setFinalAmountDisplay((1000000 * 1.14).toLocaleString('fa-IR'));
     } else if (currency === 'USD') {
       setValue('paymentMethod', 'crypto');
       setValue('amount', 10);
-      setAmountDisplay((10).toLocaleString('fa-IR'));
       setFinalAmountDisplay((10 * 1.07).toLocaleString('fa-IR'));
     }
   }, [currency, setValue]);
