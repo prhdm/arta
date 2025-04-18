@@ -5,7 +5,7 @@ export async function POST(request: Request) {
   try {
     const body: VerifyOTPRequest = await request.json();
     console.log('Received OTP verification request:', body);
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/send-otp`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/verify-otp`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
