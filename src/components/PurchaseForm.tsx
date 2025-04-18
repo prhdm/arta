@@ -14,17 +14,6 @@ interface FormData {
   currency: 'USD' | 'IRR';
 }
 
-// These functions are kept for future use
-const _persianToLatinDigits = (str: string): string => {
-  const persianDigits = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
-  return str.replace(/[۰-۹]/g, (d) => String(persianDigits.indexOf(d)));
-};
-
-const _latinToPersianDigits = (str: string): string => {
-  const persianDigits = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
-  return str.replace(/[0-9]/g, (d) => persianDigits[parseInt(d, 10)]);
-};
-
 const PurchaseForm: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showVerification, setShowVerification] = useState(false);
