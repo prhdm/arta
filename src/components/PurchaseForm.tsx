@@ -16,18 +16,19 @@ interface FormData {
   currency: 'USD' | 'IRR';
 }
 
-const persianToLatinDigits = (str: string): string => {
+// These functions are kept for future use
+const _persianToLatinDigits = (str: string): string => {
   const persianDigits = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
   return str.replace(/[۰-۹]/g, (d) => String(persianDigits.indexOf(d)));
 };
 
-const latinToPersianDigits = (str: string): string => {
+const _latinToPersianDigits = (str: string): string => {
   const persianDigits = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
   return str.replace(/[0-9]/g, (d) => persianDigits[parseInt(d, 10)]);
 };
 
 const PurchaseForm: React.FC = () => {
-  const router = useRouter();
+  const _router = useRouter(); // Kept for future use
   const [isLoading, setIsLoading] = useState(false);
   const [showVerification, setShowVerification] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -50,7 +51,7 @@ const PurchaseForm: React.FC = () => {
     },
   });
 
-  const [amountDisplay, setAmountDisplay] = useState<string>('');
+  const [_amountDisplay, setAmountDisplay] = useState<string>('');
   const [finalAmountDisplay, setFinalAmountDisplay] = useState<string>('');
   const currency = watch('currency');
 
