@@ -107,7 +107,7 @@ const PurchaseForm: React.FC = () => {
         ? Math.round(formData.amount * 1.14)
         : Math.round(formData.amount * 1.07);
 
-      const paymentResponse = await fetch('/api/payment', {
+      const paymentResponse = await fetch('/api/payments', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
