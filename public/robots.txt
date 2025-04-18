@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://ak47.arta.com/sitemap.xml 
