@@ -3,7 +3,7 @@ import { useState } from 'react';
 interface CreatePaymentParams {
   amount: number;
   currency: 'USD' | 'IRR';
-  gateway: 'zarinpal' | 'paypal' | 'nowpayments';
+  gateway: 'zarinpal' | 'nowpayments';
 }
 
 interface PaymentResponse {
@@ -39,7 +39,7 @@ export const usePayment = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': apiKey,
+          'X-API-Key': apiKey,
         },
         body: JSON.stringify(params),
       });

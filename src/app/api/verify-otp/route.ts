@@ -5,7 +5,7 @@ export async function POST(request: Request) {
   try {
     const body: VerifyOTPRequest = await request.json();
     console.log('Received OTP verification request:', body);
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/verify-otp`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/send-otp`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -22,19 +22,7 @@ export async function POST(request: Request) {
     }
 
     const data = await response.json();
-    
-    if (data.api_key) {
-      return NextResponse.json({
-        success: true,
-        message: data.message || 'OTP verified successfully',
-        api_key: data.api_key
-      });
-    } else {
-      return NextResponse.json({
-        error: 'Invalid response from server',
-        status: 500
-      });
-    }
+    return NextResponse.json(data);
   } catch (error) {
     console.error('Error verifying OTP:', error);
     return NextResponse.json(
