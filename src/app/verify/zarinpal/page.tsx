@@ -19,13 +19,13 @@ export default function ZarinpalVerify() {
           }
 
           // بازیابی اطلاعات کاربر
-          const userDataResponse = await fetch(`/api/payment/prepare?authority_id=${Authority}`);
+          const userDataResponse = await fetch(`/api/v1/payment/prepare?authority_id=${Authority}`);
           if (!userDataResponse.ok) {
             throw new Error('خطا در بازیابی اطلاعات کاربر');
           }
           const userData = await userDataResponse.json();
 
-          const response = await fetch('/local-api/zarinpal/verify', {
+          const response = await fetch('/api/zarinpal/verify', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',

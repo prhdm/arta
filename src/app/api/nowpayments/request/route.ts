@@ -36,7 +36,7 @@ export async function POST(request: Request) {
 
     // ذخیره اطلاعات کاربر
     try {
-      const storeResponse = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/payment/prepare`, {
+      const storeResponse = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/v1/payment/prepare`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -45,7 +45,6 @@ export async function POST(request: Request) {
           order_code: body.orderCode,
           name: body.name,
           email: body.email,
-          instagram: body.instagram,
           amount: body.amount,
           description: body.description,
           currency: body.currency
@@ -73,7 +72,7 @@ export async function POST(request: Request) {
       price_currency: body.currency.toLowerCase(),
       order_id: body.orderCode,
       order_description: body.description,
-      ipn_callback_url: `${process.env.NEXT_PUBLIC_SITE_URL}/api/payments/nowpayments/callback`,
+      ipn_callback_url: `${process.env.NEXT_PUBLIC_SITE_URL}/api/v1/payments/nowpayments/callback`,
       success_url: `${baseUrl}/success?orderCode=${body.orderCode}`,
       cancel_url: `${baseUrl}/cancel`,
       customer_email: body.email,

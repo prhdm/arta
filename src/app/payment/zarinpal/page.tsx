@@ -40,7 +40,7 @@ export default function ZarinpalPayment() {
           amount: Number(amount),
           orderCode,
           description: 'خرید آلبوم',
-          callback_url: `${process.env.NEXT_PUBLIC_SITE_URL}/api/payments/zarinpal/callback`,
+          callback_url: `${process.env.NEXT_PUBLIC_SITE_URL}/api/v1/payments/zarinpal/callback`,
           name,
           email,
           instagram_id: instagram

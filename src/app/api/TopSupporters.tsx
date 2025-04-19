@@ -15,7 +15,7 @@ const TopSupporters: React.FC<TopSupportersProps> = ({ title }) => {
   useEffect(() => {
     const fetchSupporters = async () => {
       try {
-        const response = await fetch('/api/top-users', {
+        const response = await fetch('/api/v1/top-users', {
           cache: 'no-store'
         });
         

@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from 'react';
 import AlbumCover from '../components/AlbumCover';
-import TopSupporters from '../components/TopSupporters';
+import TopSupporters from './api/TopSupporters';
 import PurchaseForm from '../components/PurchaseForm';
 import PrizesPopup from '../components/PrizesPopup';
 import { Supporter, ConvertedSupporter } from '../types/supporter';

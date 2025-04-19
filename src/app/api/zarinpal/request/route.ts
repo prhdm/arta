@@ -72,7 +72,7 @@ export async function POST(request: Request) {
       merchant_id: process.env.ZARINPAL_MERCHANT_ID,
       amount: tomanToRial(body.amount), // تبدیل به ریال
       description: body.description,
-      callback_url: `${process.env.NEXT_PUBLIC_SITE_URL}/api/payments/zarinpal/callback`,
+      callback_url: `${process.env.NEXT_PUBLIC_SITE_URL}/api/v1/payments/zarinpal/callback`,
       metadata: {
         order_id: body.orderCode,
       }
@@ -99,7 +99,7 @@ export async function POST(request: Request) {
     if (data.data?.code === 100 && data.data?.authority) {
       const authorityId = data.data.authority;
       
-      const prepareResponse = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/payment/prepare`, {
+      const prepareResponse = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/v1/payment/prepare`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

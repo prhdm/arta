@@ -64,7 +64,7 @@ function CryptoPaymentContent() {
         }
 
         // فراخوانی API NowPayments
-        const response = await fetch('/local-api/nowpayments/request', {
+        const response = await fetch('/api/nowpayments/request', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
