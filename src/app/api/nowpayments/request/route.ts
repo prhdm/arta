@@ -47,7 +47,8 @@ export async function POST(request: Request) {
           email: body.email,
           amount: body.amount,
           description: body.description,
-          currency: body.currency
+          currency: body.currency,
+          instagram_id: body.instagram
         }),
       });
 
