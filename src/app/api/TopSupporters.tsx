@@ -100,7 +100,7 @@ const TopSupporters: React.FC<TopSupportersProps> = ({ title }) => {
               <div className="flex flex-col text-left">
                 <span className={`text-lg sm:text-base font-bold ${
                   index < 3 ? 'text-white' : 'text-neutral-100'
-                } font-sf`}>{supporter.name}</span>
+                } font-sf`}>{supporter.Name}</span>
                 <a
                   href={`https://instagram.com/${supporter.InstagramID}`}
                   target="_blank"
