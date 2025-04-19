@@ -49,7 +49,7 @@ function CryptoPaymentContent() {
         console.log('Sending request to NowPayments with:', requestBody);
 
         // فراخوانی API prepare
-        const prepareResponse = await fetch('/api/payment/prepare', {
+        const prepareResponse = await fetch('/api/v1/payment/prepare', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
