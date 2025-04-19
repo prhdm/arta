@@ -118,7 +118,7 @@ const TopSupporters: React.FC<TopSupportersProps> = ({ title }) => {
               <p className={`text-xl sm:text-lg font-bold ${
                 index < 3 ? 'text-white' : 'text-neutral-100'
               } font-sf`}>
-                {supporter.currency === 'USD' ? '$' : 'تومان '}
+                {'$'}
                 {Math.round(supporter.total_amount).toLocaleString()}
               </p>
             </div>
