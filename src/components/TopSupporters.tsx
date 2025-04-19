@@ -1,24 +1,24 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
-import { Supporter } from "@/types/supporter";
+import { Supporter, ConvertedSupporter } from "@/types/supporter";
 
 interface TopSupportersProps {
   title?: string;
 }
 
 const TopSupporters: React.FC<TopSupportersProps> = ({ title }) => {
-  const [supporters, setSupporters] = useState<Supporter[]>([]);
+  const [supporters, setSupporters] = useState<ConvertedSupporter[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchSupporters = async () => {
       try {
-        const response = await fetch('/api/v1/top-users', {
+        const response = await fetch('/api/top-users', {
           cache: 'no-store'
         });
-
+        
         if (!response.ok) {
           const errorData = await response.json();
           throw new Error(errorData.message || 'Failed to fetch supporters');
@@ -28,8 +28,16 @@ const TopSupporters: React.FC<TopSupportersProps> = ({ title }) => {
         if (!data || !Array.isArray(data.top_users)) {
           throw new Error('Invalid data format received from API');
         }
+
+        // Convert the data to match our display format
+        const convertedSupporters: ConvertedSupporter[] = data.top_users.map((supporter: Supporter) => ({
+          name: supporter.name,
+          instagram: supporter.instagram_id,
+          amount: supporter.total_amount,
+          currency: 'USD'
+        }));
         
-        setSupporters(data.top_users);
+        setSupporters(convertedSupporters);
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Failed to load supporters';
         setError(errorMessage);
@@ -58,7 +66,7 @@ const TopSupporters: React.FC<TopSupportersProps> = ({ title }) => {
     );
   }
 
-  const sortedSupporters = supporters.slice().sort((a, b) => b.total_amount - a.total_amount);
+  const sortedSupporters = supporters.slice().sort((a, b) => b.amount - a.amount);
 
   return (
     <div
@@ -102,7 +110,7 @@ const TopSupporters: React.FC<TopSupportersProps> = ({ title }) => {
                   index < 3 ? 'text-white' : 'text-neutral-100'
                 } font-sf`}>{supporter.name}</span>
                 <a
-                  href={`https://instagram.com/${supporter.instagram_id}`}
+                  href={`https://instagram.com/${supporter.instagram}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className={`text-sm sm:text-xs ${
@@ -110,7 +118,7 @@ const TopSupporters: React.FC<TopSupportersProps> = ({ title }) => {
                   } transition-colors font-sf`}
                   dir="ltr"
                 >
-                  @{supporter.instagram_id}
+                  @{supporter.instagram}
                 </a>
               </div>
             </div>
@@ -119,7 +127,7 @@ const TopSupporters: React.FC<TopSupportersProps> = ({ title }) => {
                 index < 3 ? 'text-white' : 'text-neutral-100'
               } font-sf`}>
                 {supporter.currency === 'USD' ? '$' : 'تومان '}
-                {Math.round(supporter.total_amount).toLocaleString()}
+                {Math.round(supporter.amount).toLocaleString()}
               </p>
             </div>
           </li>
@@ -129,4 +137,4 @@ const TopSupporters: React.FC<TopSupportersProps> = ({ title }) => {
   );
 };
 
-export default TopSupporters;
+export default TopSupporters; 

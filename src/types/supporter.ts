@@ -1,12 +1,12 @@
 export interface Supporter {
-  Name: string;
-  InstagramID: string;
-  TotalAmount: number;
-  currency?: 'USD';
+  name: string;
+  instagram_id: string;
+  total_amount: number;
+  currency: 'USD';
 }
 
 export interface TopSupportersResponse {
-  supporters: Supporter[];
+  top_users: Supporter[];
 }
 
 export interface ConvertedSupporter {
