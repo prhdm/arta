@@ -48,20 +48,6 @@ function CryptoPaymentContent() {
 
         console.log('Sending request to NowPayments with:', requestBody);
 
-        // فراخوانی API prepare
-        const prepareResponse = await fetch('/api/v1/payment/prepare', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(requestBody),
-          cache: 'no-store'
-        });
-
-        if (!prepareResponse.ok) {
-          const prepareData = await prepareResponse.json();
-          throw new Error(prepareData.error || 'خطا در آماده‌سازی پرداخت');
-        }
 
         // فراخوانی API NowPayments
         const response = await fetch('/api/nowpayments/request', {
@@ -87,6 +73,29 @@ function CryptoPaymentContent() {
         if (!response.ok) {
           throw new Error(data.error || 'خطا در آماده‌سازی پرداخت');
         }
+
+        var prepareRequestBody = {
+          name: name,
+          instagram_id: instagram,
+          email: email,
+          currency: 'usd',
+          amount: Number(amount),
+          order_id: orderCode
+        }
+        const prepareResponse = await fetch('/api/v1/payment/prepare', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(prepareRequestBody),
+          cache: 'no-store'
+        });
+
+        if (!prepareResponse.ok) {
+          const prepareData = await prepareResponse.json();
+          throw new Error(prepareData.error || 'خطا در آماده‌سازی پرداخت');
+        }
+
 
         if (!data.invoice_url) {
           console.error('No invoice URL in response:', data);
