@@ -1,8 +1,8 @@
 export interface Supporter {
-  name: string;
-  instagram: string;
-  amount: number;
-  currency: 'IRR' | 'USD' | 'NOW';
+  Name: string;
+  InstagramID: string;
+  TotalAmount: number;
+  currency?: 'USD';
 }
 
 export interface TopSupportersResponse {

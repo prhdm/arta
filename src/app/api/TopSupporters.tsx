@@ -18,7 +18,6 @@ const TopSupporters: React.FC<TopSupportersProps> = ({ title }) => {
         const response = await fetch('/api/v1/top-users', {
           cache: 'no-store'
         });
-        
         if (!response.ok) {
           const errorData = await response.json();
           throw new Error(errorData.message || 'Failed to fetch supporters');
