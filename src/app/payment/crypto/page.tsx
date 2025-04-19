@@ -40,10 +40,10 @@ function CryptoPaymentContent() {
           amount: Number(amount),
           orderCode,
           description: 'خرید آلبوم',
-          currency: 'USD',
+          currency: 'usd',
           name,
           email,
-          instagram
+          instagram_id: instagram
         };
 
         console.log('Sending request to NowPayments with:', requestBody);

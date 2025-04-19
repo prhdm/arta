@@ -25,11 +25,11 @@ const TopSupporters: React.FC<TopSupportersProps> = ({ title }) => {
         }
         
         const data = await response.json();
-        if (!data || !Array.isArray(data.supporters)) {
+        if (!data || !Array.isArray(data.top_users)) {
           throw new Error('Invalid data format received from API');
         }
         
-        setSupporters(data.supporters);
+        setSupporters(data.top_users);
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Failed to load supporters';
         setError(errorMessage);
