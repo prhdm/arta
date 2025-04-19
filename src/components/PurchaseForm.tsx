@@ -80,10 +80,16 @@ const PurchaseForm: React.FC = () => {
       const finalAmount = formData.currency === 'IRR' 
         ? Math.round(formData.amount * 1.14)
         : Math.round(formData.amount * 1.07);
+
+      // Generate a random orderCode
+      const orderCode = Math.random().toString(36).substring(2, 15);
+
       if (formData.currency === 'IRR') {
-        window.location.href = `/payment/zarinpal?amount=${finalAmount}&name=${encodeURIComponent(formData.name)}&email=${encodeURIComponent(formData.email)}&instagram=${encodeURIComponent(formData.instagram)}`;
+        // Redirect to Zarinpal payment page
+        window.location.href = `/payment/zarinpal?amount=${finalAmount}&orderCode=${orderCode}&name=${encodeURIComponent(formData.name)}&email=${encodeURIComponent(formData.email)}&instagram=${encodeURIComponent(formData.instagram)}`;
       } else {
-        window.location.href = `/payment/crypto?amount=${finalAmount}&name=${encodeURIComponent(formData.name)}&email=${encodeURIComponent(formData.email)}&instagram=${encodeURIComponent(formData.instagram)}`;
+        // Redirect to NOWPayments page
+        window.location.href = `/payment/crypto?amount=${finalAmount}&orderCode=${orderCode}&name=${encodeURIComponent(formData.name)}&email=${encodeURIComponent(formData.email)}&instagram=${encodeURIComponent(formData.instagram)}`;
       }
     } catch (error) {
       console.error('Error:', error);
