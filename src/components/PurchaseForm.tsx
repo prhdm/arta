@@ -80,38 +80,10 @@ const PurchaseForm: React.FC = () => {
       const finalAmount = formData.currency === 'IRR' 
         ? Math.round(formData.amount * 1.14)
         : Math.round(formData.amount * 1.07);
-
-      const apiKey = process.env.NEXT_PUBLIC_API_KEY;
-      if (!apiKey) {
-        throw new Error('API key not found');
-      }
-
-      const paymentResponse = await fetch('/api/payments', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-API-Key': apiKey,
-        },
-        body: JSON.stringify({
-          amount: finalAmount,
-          currency: formData.currency,
-          gateway: formData.currency === 'IRR' ? 'zarinpal' : formData.paymentMethod,
-          name: formData.name,
-          email: formData.email,
-          instagram: formData.instagram,
-        }),
-      });
-
-      const result = await paymentResponse.json();
-
-      if (paymentResponse.ok) {
-        if (formData.currency === 'IRR' || formData.paymentMethod === 'zarinpal') {
-          window.location.href = `/payment/zarinpal?amount=${finalAmount}&orderCode=${result.orderCode}&name=${encodeURIComponent(formData.name)}&email=${encodeURIComponent(formData.email)}&instagram=${encodeURIComponent(formData.instagram)}`;
-        } else if (formData.paymentMethod === 'crypto') {
-          window.location.href = `/payment/crypto?amount=${finalAmount}&orderCode=${result.orderCode}&name=${encodeURIComponent(formData.name)}&email=${encodeURIComponent(formData.email)}&instagram=${encodeURIComponent(formData.instagram)}`;
-        }
+      if (formData.currency === 'IRR') {
+        window.location.href = `/payment/zarinpal?amount=${finalAmount}&name=${encodeURIComponent(formData.name)}&email=${encodeURIComponent(formData.email)}&instagram=${encodeURIComponent(formData.instagram)}`;
       } else {
-        throw new Error(result.error || 'خطا در پردازش پرداخت');
+        window.location.href = `/payment/crypto?amount=${finalAmount}&name=${encodeURIComponent(formData.name)}&email=${encodeURIComponent(formData.email)}&instagram=${encodeURIComponent(formData.instagram)}`;
       }
     } catch (error) {
       console.error('Error:', error);
