@@ -18,6 +18,7 @@ const TopSupporters: React.FC<TopSupportersProps> = ({ title }) => {
         const response = await fetch('/api/v1/top-users', {
           cache: 'no-store'
         });
+
         if (!response.ok) {
           const errorData = await response.json();
           throw new Error(errorData.message || 'Failed to fetch supporters');
@@ -57,7 +58,7 @@ const TopSupporters: React.FC<TopSupportersProps> = ({ title }) => {
     );
   }
 
-  const sortedSupporters = supporters.slice().sort((a, b) => b.amount - a.amount);
+  const sortedSupporters = supporters.slice().sort((a, b) => b.TotalAmount - a.TotalAmount);
 
   return (
     <div
@@ -101,7 +102,7 @@ const TopSupporters: React.FC<TopSupportersProps> = ({ title }) => {
                   index < 3 ? 'text-white' : 'text-neutral-100'
                 } font-sf`}>{supporter.name}</span>
                 <a
-                  href={`https://instagram.com/${supporter.instagram}`}
+                  href={`https://instagram.com/${supporter.InstagramID}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className={`text-sm sm:text-xs ${
@@ -109,7 +110,7 @@ const TopSupporters: React.FC<TopSupportersProps> = ({ title }) => {
                   } transition-colors font-sf`}
                   dir="ltr"
                 >
-                  @{supporter.instagram}
+                  @{supporter.InstagramID}
                 </a>
               </div>
             </div>
@@ -118,7 +119,7 @@ const TopSupporters: React.FC<TopSupportersProps> = ({ title }) => {
                 index < 3 ? 'text-white' : 'text-neutral-100'
               } font-sf`}>
                 {supporter.currency === 'USD' ? '$' : 'تومان '}
-                {Math.round(supporter.amount).toLocaleString()}
+                {Math.round(supporter.TotalAmount).toLocaleString()}
               </p>
             </div>
           </li>
