@@ -48,7 +48,7 @@ export default function ZarinpalPayment() {
 
         console.log('Sending request to Zarinpal with:', requestBody);
 
-        // فراخوانی API زرین‌پال
+        // Call Zarinpal request API directly
         const response = await fetch('/api/zarinpal/request', {
           method: 'POST',
           headers: {
@@ -58,7 +58,8 @@ export default function ZarinpalPayment() {
         });
 
         if (!response.ok) {
-          throw new Error('خطا در آماده‌سازی پرداخت');
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'خطا در آماده‌سازی پرداخت');
         }
 
         const data = await response.json();
@@ -70,7 +71,7 @@ export default function ZarinpalPayment() {
         window.location.href = data.paymentUrl;
       } catch (error) {
         console.error('Error:', error);
-        alert('خطا در اتصال به درگاه پرداخت. لطفاً دوباره تلاش کنید.');
+        alert(error instanceof Error ? error.message : 'خطا در اتصال به درگاه پرداخت. لطفاً دوباره تلاش کنید.');
         window.location.href = '/';
       }
     };

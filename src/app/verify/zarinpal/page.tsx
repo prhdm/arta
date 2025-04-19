@@ -25,7 +25,7 @@ export default function ZarinpalVerify() {
           }
           const userData = await userDataResponse.json();
 
-          const response = await fetch('/api/zarinpal/verify', {
+          const response = await fetch('/local-api/zarinpal/verify', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
