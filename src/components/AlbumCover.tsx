@@ -20,7 +20,13 @@ const AlbumCover = ({ coverUrl, albumName, artistName }: AlbumCoverProps) => {
           height={300}
           className="object-cover rounded-3xl shadow-lg"
           priority
-          unoptimized
+          quality={100}
+          loading="eager"
+          onError={(e) => {
+            console.error('Error loading image:', e);
+            const target = e.target as HTMLImageElement;
+            target.src = '/images/placeholder.jpg';
+          }}
         />
       </div>
       <h2 className="text-4xl font-bold text-white mt-4">{albumName}</h2>

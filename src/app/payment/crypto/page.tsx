@@ -7,50 +7,103 @@ function CryptoPaymentContent() {
   const searchParams = useSearchParams();
   const amount = searchParams.get('amount');
   const orderCode = searchParams.get('orderCode');
+  const name = searchParams.get('name');
+  const email = searchParams.get('email');
+  const instagram = searchParams.get('instagram');
 
   useEffect(() => {
     const redirectToNowPayments = async () => {
-      if (amount && orderCode) {
-        try {
-          console.log('Sending request to NowPayments with:', {
-            amount: Number(amount),
-            orderCode,
-            description: 'خرید آلبوم',
-            currency: 'USD',
-          });
+      console.log('=== NowPayments Payment Debug ===');
+      console.log('URL parameters:', {
+        amount,
+        orderCode,
+        name,
+        email,
+        instagram
+      });
 
-          const response = await fetch('/api/nowpayments/request', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'X-API-Key': process.env.NEXT_PUBLIC_API_KEY || '',
-            },
-            body: JSON.stringify({
-              amount: Number(amount),
-              orderCode,
-              description: 'خرید آلبوم',
-              currency: 'USD',
-            }),
-          });
+      if (!amount || !orderCode || !name || !email || !instagram) {
+        console.log('Missing required parameters:', {
+          amount: !amount,
+          orderCode: !orderCode,
+          name: !name,
+          email: !email,
+          instagram: !instagram
+        });
+        alert('اطلاعات پرداخت ناقص است. لطفاً دوباره تلاش کنید.');
+        window.location.href = '/';
+        return;
+      }
 
-          const data = await response.json();
-          console.log('NowPayments response:', data);
+      try {
+        const requestBody = {
+          amount: Number(amount),
+          orderCode,
+          description: 'خرید آلبوم',
+          currency: 'USD',
+          name,
+          email,
+          instagram
+        };
 
-          if (response.ok && data.invoice_url) {
-            window.location.href = data.invoice_url;
-          } else {
-            throw new Error(data.error || 'خطا در اتصال به درگاه پرداخت');
-          }
-        } catch (error) {
-          console.error('Error:', error);
-          alert('خطا در اتصال به درگاه پرداخت. لطفاً دوباره تلاش کنید.');
-          window.location.href = '/';
+        console.log('Sending request to NowPayments with:', requestBody);
+
+        // فراخوانی API prepare
+        const prepareResponse = await fetch('/api/payment/prepare', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(requestBody),
+          cache: 'no-store'
+        });
+
+        if (!prepareResponse.ok) {
+          const prepareData = await prepareResponse.json();
+          throw new Error(prepareData.error || 'خطا در آماده‌سازی پرداخت');
         }
+
+        // فراخوانی API NowPayments
+        const response = await fetch('/api/nowpayments/request', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(requestBody),
+          cache: 'no-store'
+        });
+
+        console.log('NowPayments response status:', response.status);
+        let data;
+        try {
+          const responseText = await response.text();
+          console.log('NowPayments response text:', responseText);
+          data = JSON.parse(responseText);
+        } catch (error) {
+          console.error('Error parsing response:', error);
+          throw new Error('خطا در پردازش پاسخ');
+        }
+
+        if (!response.ok) {
+          throw new Error(data.error || 'خطا در آماده‌سازی پرداخت');
+        }
+
+        if (!data.invoice_url) {
+          console.error('No invoice URL in response:', data);
+          throw new Error('خطا در دریافت لینک پرداخت');
+        }
+
+        console.log('Redirecting to:', data.invoice_url);
+        window.location.href = data.invoice_url;
+      } catch (error: any) {
+        console.error('Error in payment process:', error);
+        alert(error.message || 'خطا در اتصال به درگاه پرداخت. لطفاً دوباره تلاش کنید.');
+        window.location.href = '/';
       }
     };
 
     redirectToNowPayments();
-  }, [amount, orderCode]);
+  }, [amount, orderCode, name, email, instagram]);
 
   return (
     <div className="h-[calc(100vh-200px)] flex items-center justify-center p-4">

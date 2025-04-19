@@ -2,7 +2,7 @@ export interface Supporter {
   name: string;
   instagram: string;
   amount: number;
-  currency: string;
+  currency: 'IRR' | 'USD' | 'NOW';
 }
 
 export interface TopSupportersResponse {

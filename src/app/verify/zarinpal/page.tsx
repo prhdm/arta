@@ -7,6 +7,7 @@ export default function ZarinpalVerify() {
   const searchParams = useSearchParams();
   const Authority = searchParams.get('Authority');
   const Status = searchParams.get('Status');
+  const orderCode = searchParams.get('orderCode');
 
   useEffect(() => {
     const verifyPayment = async () => {
@@ -17,6 +18,13 @@ export default function ZarinpalVerify() {
             throw new Error('API key not found');
           }
 
+          // بازیابی اطلاعات کاربر
+          const userDataResponse = await fetch(`/api/payment/prepare?authority_id=${Authority}`);
+          if (!userDataResponse.ok) {
+            throw new Error('خطا در بازیابی اطلاعات کاربر');
+          }
+          const userData = await userDataResponse.json();
+
           const response = await fetch('/api/zarinpal/verify', {
             method: 'POST',
             headers: {
@@ -26,6 +34,7 @@ export default function ZarinpalVerify() {
             body: JSON.stringify({
               authority: Authority,
               status: Status,
+              ...userData
             }),
           });
 

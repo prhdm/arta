@@ -74,7 +74,7 @@ const PurchaseForm: React.FC = () => {
 
   const onSubmit = async (data: FormData) => {
     setIsLoading(true);
-
+    
     try {
       const formData = watch();
       const finalAmount = formData.currency === 'IRR' 
@@ -106,9 +106,9 @@ const PurchaseForm: React.FC = () => {
 
       if (paymentResponse.ok) {
         if (formData.currency === 'IRR' || formData.paymentMethod === 'zarinpal') {
-          window.location.href = `/payment/zarinpal?amount=${finalAmount}&orderCode=${result.orderCode}`;
+          window.location.href = `/payment/zarinpal?amount=${finalAmount}&orderCode=${result.orderCode}&name=${encodeURIComponent(formData.name)}&email=${encodeURIComponent(formData.email)}&instagram=${encodeURIComponent(formData.instagram)}`;
         } else if (formData.paymentMethod === 'crypto') {
-          window.location.href = `/payment/crypto?amount=${finalAmount}&orderCode=${result.orderCode}`;
+          window.location.href = `/payment/crypto?amount=${finalAmount}&orderCode=${result.orderCode}&name=${encodeURIComponent(formData.name)}&email=${encodeURIComponent(formData.email)}&instagram=${encodeURIComponent(formData.instagram)}`;
         }
       } else {
         throw new Error(result.error || 'خطا در پردازش پرداخت');

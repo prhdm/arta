@@ -1,9 +1,13 @@
 "use client";
 import React from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { CheckCircle } from 'lucide-react';
 
 const SuccessPage = () => {
+  const searchParams = useSearchParams();
+  const orderCode = searchParams.get('orderCode');
+
   return (
     <div className="h-[calc(100vh-200px)] flex items-center justify-center p-4">
       <div className="bg-neutral-900 p-8 rounded-3xl border border-neutral-700 w-full max-w-md text-center">
@@ -18,6 +22,13 @@ const SuccessPage = () => {
         <p className="text-neutral-400 mb-6 font-iranyekan">
           از حمایت شما متشکریم. به زودی با شما تماس خواهیم گرفت.
         </p>
+
+        {orderCode && (
+          <div className="bg-neutral-800 p-4 rounded-xl mb-6">
+            <p className="text-neutral-300 font-iranyekan">کد سفارش شما:</p>
+            <p className="text-white font-bold text-xl font-iranyekan">{orderCode}</p>
+          </div>
+        )}
 
         <Link
           href="/"

@@ -43,9 +43,11 @@ const Home: React.FC = () => {
           </div>
 
           <div className="w-full md:w-1/2 px-0 sm:px-1 order-1 md:order-2">
-            <TopSupporters
-              title="۱۰ خریدار برتر"
-            />
+            <div className="h-full">
+              <TopSupporters
+                title="۱۰ خریدار برتر"
+              />
+            </div>
           </div>
         </div>
       </div>

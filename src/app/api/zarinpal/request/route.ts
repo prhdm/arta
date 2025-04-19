@@ -1,4 +1,18 @@
 import { NextResponse } from 'next/server';
+import fs from 'fs';
+import path from 'path';
+
+// تعریف store برای ذخیره اطلاعات کاربر
+const userDataStore: Record<string, any> = {};
+
+// تنظیم مسیر فایل لاگ
+const logDir = path.join(process.cwd(), 'logs');
+const logFile = path.join(logDir, 'zarinpal-requests.log');
+
+// اطمینان از وجود دایرکتوری لاگ
+if (!fs.existsSync(logDir)) {
+  fs.mkdirSync(logDir, { recursive: true });
+}
 
 interface ZarinpalRequestBody {
   amount: number;
@@ -10,41 +24,82 @@ interface ZarinpalRequestBody {
   email: string;
 }
 
+// تبدیل تومان به ریال
+const tomanToRial = (amount: number): number => amount * 10;
+
+// تابع برای نوشتن لاگ
+const writeLog = (message: string, data?: any) => {
+  const timestamp = new Date().toISOString();
+  const logMessage = `[${timestamp}] ${message}${data ? '\n' + JSON.stringify(data, null, 2) : ''}\n\n`;
+  fs.appendFileSync(logFile, logMessage);
+  console.log(message, data || '');
+};
+
 export async function POST(request: Request) {
   try {
-    const body: ZarinpalRequestBody = await request.json();
+    console.log('=== Zarinpal API Debug ===');
+    console.log('Request received at:', new Date().toISOString());
+    
+    const body = await request.json();
+    console.log('Request body:', JSON.stringify(body, null, 2));
 
-    if (!body.amount || !body.orderCode || !body.description || !body.name || !body.instagram_id || !body.email) {
+    // اعتبارسنجی ورودی‌ها
+    if (!body.amount || !body.orderCode || !body.description || !body.name || !body.email || !body.instagram_id) {
+      console.log('Missing required fields:', {
+        amount: !body.amount,
+        orderCode: !body.orderCode,
+        description: !body.description,
+        name: !body.name,
+        email: !body.email,
+        instagram_id: !body.instagram_id
+      });
       return NextResponse.json(
         { error: 'همه پارامترها الزامی هستند' },
         { status: 400 }
       );
     }
 
+    // بررسی مقدار مبلغ
+    if (body.amount <= 0) {
+      console.log('Validation failed - Invalid amount');
+      return NextResponse.json(
+        { error: 'مبلغ باید بزرگتر از صفر باشد' },
+        { status: 400 }
+      );
+    }
+
+    const requestBody = {
+      merchant_id: process.env.ZARINPAL_MERCHANT_ID,
+      amount: tomanToRial(body.amount), // تبدیل به ریال
+      description: body.description,
+      callback_url: `${process.env.NEXT_PUBLIC_SITE_URL}/api/payments/zarinpal/callback`,
+      metadata: {
+        order_id: body.orderCode,
+      }
+    };
+
+    console.log('Sending request to Zarinpal:', JSON.stringify(requestBody, null, 2));
+
     const response = await fetch('https://api.zarinpal.com/pg/v4/payment/request.json', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
-        'Authorization': `Bearer ${process.env.ZARINPAL_MERCHANT_ID}`,
       },
-      body: JSON.stringify({
-        merchant_id: process.env.ZARINPAL_MERCHANT_ID,
-        amount: body.amount * 10, // تبدیل تومان به ریال
-        description: body.description,
-        callback_url: `${process.env.NEXT_PUBLIC_SITE_URL}/api/payments/zarinpal/callback`,
-        metadata: {
-          order_id: body.orderCode,
-        }
-      }),
+      body: JSON.stringify(requestBody),
     });
 
-    const data = await response.json();
+    console.log('Zarinpal response status:', response.status);
+    const responseText = await response.text();
+    console.log('Zarinpal response text:', responseText);
+    
+    const data = JSON.parse(responseText);
+    console.log('Parsed response data:', JSON.stringify(data, null, 2));
 
-    if (data.data.code === 100) {
+    if (data.data?.code === 100 && data.data?.authority) {
       const authorityId = data.data.authority;
-
-      const prepareResponse = await fetch('/api/payment/prepare', {
+      
+      const prepareResponse = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/payment/prepare`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -53,23 +108,49 @@ export async function POST(request: Request) {
           name: body.name,
           instagram_id: body.instagram_id,
           email: body.email,
-          currency: 'irr',
           amount: body.amount,
-          authority_id: authorityId,
+          currency: 'irr',
+          authority_id: authorityId
         }),
       });
 
-      const prepareData = await prepareResponse.json();
-
-      if (prepareResponse.ok) {
-        return NextResponse.json({
-          url: prepareData.url,
-        });
-      } else {
-        throw new Error(prepareData.error || 'Error in payment preparation');
+      // بررسی پاسخ از API prepare
+      if (prepareResponse.status !== 200) {
+        console.log('Prepare payment failed:', await prepareResponse.text());
+        return NextResponse.json(
+          { error: 'خطا در آماده‌سازی پرداخت' },
+          { status: 400 }
+        );
       }
+      
+      const paymentUrl = `https://www.zarinpal.com/pg/StartPay/${authorityId}`;
+      
+      // ذخیره اطلاعات کاربر
+      const userData = {
+        name: body.name,
+        email: body.email,
+        instagram: body.instagram_id,
+        amount: body.amount,
+        description: body.description,
+        currency: 'IRR',
+        timestamp: Date.now(),
+        paymentUrl: paymentUrl,
+        authority: authorityId
+      };
+
+      // ذخیره اطلاعات در store
+      userDataStore[body.orderCode] = userData;
+
+      console.log('User data stored:', userData);
+      console.log('Payment URL generated:', paymentUrl);
+
+      return NextResponse.json(userData);
     } else {
-      throw new Error(data.errors.message || 'خطا در ایجاد تراکنش');
+      console.log('Zarinpal error:', data.errors?.message || 'خطای نامشخص');
+      return NextResponse.json(
+        { error: data.errors?.message || 'خطا در ایجاد تراکنش' },
+        { status: 400 }
+      );
     }
   } catch (error) {
     console.error('Error in Zarinpal request:', error);

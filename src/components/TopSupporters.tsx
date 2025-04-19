@@ -15,14 +15,24 @@ const TopSupporters: React.FC<TopSupportersProps> = ({ title }) => {
   useEffect(() => {
     const fetchSupporters = async () => {
       try {
-        const response = await fetch('/api/top-users');
+        const response = await fetch('/api/top-users', {
+          cache: 'no-store'
+        });
+        
         if (!response.ok) {
-          throw new Error('Failed to fetch supporters');
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to fetch supporters');
         }
+        
         const data = await response.json();
+        if (!data || !Array.isArray(data.supporters)) {
+          throw new Error('Invalid data format received from API');
+        }
+        
         setSupporters(data.supporters);
       } catch (err) {
-        setError('Failed to load supporters');
+        const errorMessage = err instanceof Error ? err.message : 'Failed to load supporters';
+        setError(errorMessage);
         console.error('Error fetching supporters:', err);
       } finally {
         setLoading(false);

@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import type { PaymentData } from '@/types/payment';
 
+// ذخیره‌سازی موقت کدهای تایید
+const verificationCodes: Record<string, string> = {};
+
 export async function POST(request: Request) {
   try {
     const { email, code, amount, currency, name, instagram } = await request.json() as PaymentData;
@@ -13,7 +16,7 @@ export async function POST(request: Request) {
     }
 
     // بررسی کد تایید
-    if (!global.verificationCodes?.[email] || global.verificationCodes[email] !== code) {
+    if (!verificationCodes[email] || verificationCodes[email] !== code) {
       return NextResponse.json(
         { error: 'کد تایید نامعتبر است' },
         { status: 400 }
@@ -25,7 +28,7 @@ export async function POST(request: Request) {
     const orderCode = Math.random().toString(36).substring(2, 15);
 
     // حذف کد تایید پس از استفاده
-    delete global.verificationCodes[email];
+    delete verificationCodes[email];
 
     return NextResponse.json({ 
       success: true,

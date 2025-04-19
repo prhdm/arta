@@ -7,41 +7,76 @@ export default function ZarinpalPayment() {
   const searchParams = useSearchParams();
   const amount = searchParams.get('amount');
   const orderCode = searchParams.get('orderCode');
+  const name = searchParams.get('name');
+  const email = searchParams.get('email');
+  const instagram = searchParams.get('instagram');
 
   useEffect(() => {
     const redirectToZarinpal = async () => {
-      if (amount && orderCode) {
-        try {
-          const response = await fetch('/api/zarinpal/request', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              amount: Number(amount),
-              orderCode,
-              description: 'خرید آلبوم',
-              callback_url: `${process.env.NEXT_PUBLIC_SITE_URL}/verify/zarinpal`
-            }),
-          });
+      console.log('=== Zarinpal Payment Debug ===');
+      console.log('URL parameters:', {
+        amount,
+        orderCode,
+        name,
+        email,
+        instagram
+      });
 
-          const data = await response.json();
+      if (!amount || !orderCode || !name || !email || !instagram) {
+        console.log('Missing required parameters:', {
+          amount: !amount,
+          orderCode: !orderCode,
+          name: !name,
+          email: !email,
+          instagram: !instagram
+        });
+        alert('اطلاعات پرداخت ناقص است. لطفاً دوباره تلاش کنید.');
+        window.location.href = '/';
+        return;
+      }
 
-          if (response.ok && data.url) {
-            window.location.href = data.url;
-          } else {
-            throw new Error(data.error || 'خطا در اتصال به درگاه پرداخت');
-          }
-        } catch (error) {
-          console.error('Error:', error);
-          alert('خطا در اتصال به درگاه پرداخت. لطفاً دوباره تلاش کنید.');
-          window.location.href = '/';
+      try {
+        const requestBody = {
+          amount: Number(amount),
+          orderCode,
+          description: 'خرید آلبوم',
+          callback_url: `${process.env.NEXT_PUBLIC_SITE_URL}/api/payments/zarinpal/callback`,
+          name,
+          email,
+          instagram_id: instagram
+        };
+
+        console.log('Sending request to Zarinpal with:', requestBody);
+
+        // فراخوانی API زرین‌پال
+        const response = await fetch('/api/zarinpal/request', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(requestBody),
+        });
+
+        if (!response.ok) {
+          throw new Error('خطا در آماده‌سازی پرداخت');
         }
+
+        const data = await response.json();
+        if (!data.paymentUrl) {
+          throw new Error('خطا در دریافت لینک پرداخت');
+        }
+
+        console.log('Redirecting to:', data.paymentUrl);
+        window.location.href = data.paymentUrl;
+      } catch (error) {
+        console.error('Error:', error);
+        alert('خطا در اتصال به درگاه پرداخت. لطفاً دوباره تلاش کنید.');
+        window.location.href = '/';
       }
     };
 
     redirectToZarinpal();
-  }, [amount, orderCode]);
+  }, [amount, orderCode, name, email, instagram]);
 
   return (
     <div className="h-[calc(100vh-200px)] flex items-center justify-center p-4">
