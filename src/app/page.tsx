@@ -6,6 +6,8 @@ import PurchaseForm from '../components/PurchaseForm';
 import PrizesPopup from '../components/PrizesPopup';
 import { Supporter, ConvertedSupporter } from '../types/supporter';
 import Header from '@/components/Header';
+import PurchaseNotes from '@/components/PurchaseNotes';
+
 
 const Home: React.FC = () => {
   const [showPrizesPopup, setShowPrizesPopup] = useState(() => {
@@ -49,6 +51,9 @@ const Home: React.FC = () => {
               />
             </div>
           </div>
+        </div>
+        <div className="mt-8">
+          <PurchaseNotes />
         </div>
       </div>
     </main>

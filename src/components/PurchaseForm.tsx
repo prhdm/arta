@@ -315,6 +315,11 @@ const PurchaseForm: React.FC = () => {
                     className="w-full px-4 py-4 text-base min-[16px] rounded-lg bg-neutral-800 text-neutral-100 border border-neutral-700 focus:ring-2 focus:ring-[#8B0000] focus:border-[#8B0000] focus:outline-none placeholder-neutral-500 font-iranyekan"
                   />
                   <div className="mt-3 text-base text-neutral-400">
+                    {currency === 'IRR' && (
+                      <div className="mb-2">
+                        نمایش در سایت: {latinToPersianDigits(Math.round(field.value / 100000).toString())} دلار
+                      </div>
+                    )}
                     مبلغ نهایی با احتساب مالیات: {finalAmountDisplay} {currency === 'IRR' ? 'تومان' : 'دلار'}
                   </div>
                   {errors.amount && <p className="mt-2 text-sm text-red-400">{errors.amount.message}</p>}
